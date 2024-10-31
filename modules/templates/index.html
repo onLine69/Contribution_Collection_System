@@ -1,0 +1,125 @@
+{% extends "master.html" %}
+{% block info %}
+<div class="operation-area">
+    <div class="operations">
+        <form class="d-flex" role="search" id="program-show" action="{{ url_for('index') }}" method="post" onsubmit="return validateForm()">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <select name="programs" id="programs" class="form-select-lg">
+                <option value="" disabled selected>--Select a Program--</option>
+                {% for program_code in program_codes %}
+                    <option class="show-options" value="{{ program_code[0] }}" {% if program_name == program_code[0] %}selected{% endif %}>
+                        {{ program_code[0] }}
+                    </option>
+                {% endfor %}
+            </select>
+            <select name="years" id="years" class="form-select-lg">
+                <option value="" disabled selected>--Select Year--</option>
+                {% for academic_year in academic_years %}
+                    <option class="show-options" value="{{ academic_year }}" {% if chosen_year == academic_year %}selected{% endif %}>
+                        {{ academic_year }}
+                    </option>
+                {% endfor %}
+            </select>
+        
+            <select name="months" id="months" class="form-select-lg">
+                <option value="" disabled selected>--Select a Month--</option>
+                {% set month_names = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"] %}
+                {% for month in range(1, 13) %}
+                    <option value="{{ month }}" {% if selected_month|int == month %}selected{% endif %}>
+                        {{ month_names[month - 1] }}  <!-- month - 1 to adjust for zero-indexing -->
+                    </option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="btn btn-primary">Check</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    function validateForm() {
+        const programSelect = document.getElementById('programs');
+        const yearSelect = document.getElementById('years');
+        const monthSelect = document.getElementById('months');
+
+        if (programSelect.value === "" || yearSelect.value === "" || monthSelect.value === "") {
+            alert("Please select a value for all fields.");
+            return false; // Prevent form submission
+        }
+
+        return true; // Allow form submission
+    }
+</script>
+{% endblock %}
+
+{% block content %}
+{% if program_name %}
+<div style="display: flex; justify-content: center; flex-direction: column; align-items: center;">
+    <canvas id="1stSem" style="width: 100%; max-width: 700px;"></canvas>
+    <canvas id="2ndSem" style="width: 100%; max-width: 700px;"></canvas>
+</div>
+
+<script>
+    const xValues = ["1st", "2nd", "3rd", "4th"];
+    const pdata = {{ paid_count | tojson }};
+    const udata = {{ unpaid_count | tojson }};
+
+    const fpaid_data = {
+        label: "Paid",
+        data: pdata.fcontribution.data,
+        borderColor: "blue",
+        fill: false
+    };
+
+    const funpaid_data = {
+        label: "Unpaid",
+        data: udata.fcontribution.data,
+        borderColor: "red",
+        fill: false
+    };
+
+    new Chart("1stSem", {
+      type: "line",
+      data: {
+        labels: xValues,
+        datasets: [fpaid_data, funpaid_data]
+      },
+      options: {
+        title: {
+            display: true,
+            text: pdata.fcontribution.name + " (" + "{{ program_name }}" + ")"
+        },
+        legend: {display: true}
+      }
+    });
+
+    const spaid_data = {
+        label: "Paid",
+        data: pdata.scontribution.data,
+        borderColor: "blue",
+        fill: false
+    };
+
+    const sunpaid_data = {
+        label: "Unpaid",
+        data: udata.scontribution.data,
+        borderColor: "red",
+        fill: false
+    };
+    
+    new Chart("2ndSem", {
+      type: "line",
+      data: {
+        labels: xValues,
+        datasets: [spaid_data, sunpaid_data]
+      },
+      options: {
+        title: {
+            display: true,
+            text: pdata.scontribution.name + " (" + "{{ program_name }}" + ")"
+        },
+        legend: {display: true}
+      }
+    });
+</script>
+{% endif %}
+{% endblock %}

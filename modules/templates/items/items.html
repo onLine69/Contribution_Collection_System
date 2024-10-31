@@ -1,0 +1,95 @@
+{% extends "master.html" %}
+
+{% block info %}
+<div class="operation-area">
+    <div class="operations">
+      <form class="d-flex" role="search" action="{{ url_for('items.search') }}" method="get">
+        <select name="column-search" id="column-search" class="form-select-lg">
+          <option class="columns-options" value="name" {% if column_name == 'name' %}selected{% endif %}>Name</option>
+          <option class="columns-options" value="academic_year" {% if column_name == 'academic_year' %}selected{% endif %}>Academic Year</option>
+          <option class="columns-options" value="collecting_org_code" {% if column_name == 'collecting_org_code' %}selected{% endif %}>Organization</option>
+        </select>
+        <input class="form-control me-2" id="param-search" type="search" name="param-search" placeholder="Search" value="{{ searched_item }}" aria-label="Search">
+        <button class="search-btn btn btn-outline-secondary" type="submit">Search</button>
+      </form>
+      <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#add-modal">Create</button>
+    </div>
+  </div>
+{% endblock %}
+{% block content %}
+<table class="table table-light table-hover">
+    <thead>
+        <th scope="col">Item Name</th>
+        <th scope="col">Amount (in PhP)</th>
+        <th scope="col">A.Y</th>
+        <th scope="col">Organization</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        {% for item in items %}
+        <tr>
+            <td title="{{ item[0] }}">{{ item[0] }}</td>
+            <td title="{{ item[1] }}">{{ item[1] }}</td>
+            <td title="{{ item[2] }}">{{ item[2] }}</td>
+            <td title="{{ item[3] }}">{{ item[3] }}</td>
+            <td>
+                <form action="{{ url_for('items.delete', acad_year=item[2], name=item[0]) }}" method="post">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="delete-item btn btn-outline-danger btn-sm"
+                        data-name="{{ item[0] }}" data-year="{{ item[2] }}">Delete</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- Modal -->
+<div class="modal fade" id="add-modal" tabindex="-1" aria-labelledby="addModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="addModalLabel">Create New Contribution</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form action="{{ url_for('items.index') }}" method="post" class="form-select">
+            {{ form.csrf_token() }}
+            <div class="input-group mb-3">
+              {{ form.name.label(class="input-group-text") }}
+              {{ form.name(class="form-control {% if form.name.errors %}is-invalid{% endif %}", placeholder="e.g. 1st Assessment Fee") }}
+              {% if form.name.errors %}
+              <div class="invalid-feedback">{% for error in form.name.errors %} {{ error }} {% endfor %}</div>
+              {% endif %}
+            </div>
+            <div class="input-group mb-3">
+              {{ form.amount.label(class="input-group-text") }}
+              {{ form.amount(class="form-control {% if form.amount.errors %}is-invalid{% endif %}", placeholder="e.g. 200") }}
+              {% if form.amount.errors %}
+              <div class="invalid-feedback">{% for error in form.amount.errors %} {{ error }} {% endfor %}</div>
+              {% endif %}
+            </div>
+            <div class="input-group mb-3">
+              {{ form.academic_year.label(class="input-group-text") }}
+              {{ form.academic_year(class="form-control {% if form.academic_year.errors %}is-invalid{% endif %}", placeholder="e.g. 2024-2025") }}
+              {% if form.academic_year.errors %}
+              <div class="invalid-feedback">{% for error in form.academic_year.errors %} {{ error }} {% endfor %}</div>
+              {% endif %}
+            </div>
+            <div class="input-group mb-3">
+              {{ form.collecting_org_code.label(class="input-group-text") }}
+              {{ form.collecting_org_code(class="form-control {% if form.collecting_org_code.errors %}is-invalid{% endif %}", placeholder="e.g. CCS-EC") }}
+              {% if form.collecting_org_code.errors %}
+              <div class="invalid-feedback">{% for error in form.collecting_org_code.errors %} {{ error }} {% endfor %}</div>
+              {% endif %}
+            </div>
+          
+          <div class="modal-footer">
+            <button type="submit" class="btn btn-primary">Add</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

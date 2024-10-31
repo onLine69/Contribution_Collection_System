@@ -1,0 +1,258 @@
+{% extends "master.html" %}
+
+{% block info %}
+<div class="operation-area" style="padding: 2rem;">
+    <div style="display: flex; justify-content: center; gap: 2rem; flex-wrap: nowrap;">
+        <div class="card" style="width: 15rem; padding: 1rem; border: 1px solid #ccc; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+            <h5 class="card-title" style="text-align: center; margin-bottom: 1rem;">Filter List</h5>
+            <form action="{{ url_for('verifications.index') }}" method="get" style="display: flex; flex-direction: column; width: 100%;">
+                <input type="hidden" name="contribution-names" id="contribution-names" value="{{ data.chosen_contribution[0] }}">
+                <select name="program-code" id="program-code" class="form-select" style="margin-bottom: 10px;">
+                    <option value="" selected>--Display Program--</option>
+                    {% for program_code in data.program_codes %}
+                        <option value="{{ program_code[0] }}" {% if data.display_program_code == program_code[0] %}selected{% endif %}>{{ program_code[0] }}</option>
+                    {% endfor %}
+                </select>
+
+                {% set display_year = ["1st Year", "2nd Year", "3rd Year", "4th Year"] %}
+                <select name="year-level" id="year-level" class="form-select" style="margin-bottom: 10px;">
+                    <option value="" selected>--Display Year--</option>
+                    {% for y in range(0, 4) %}
+                        <option value="{{ y + 1 }}" {% if data.display_year_level|int == y + 1 %}selected{% endif %}>{{ display_year[y] }}</option>
+                    {% endfor %}
+                </select>
+                <tr>
+                    <td style="font-weight: bold;">Total # Students:</td>
+                    <td style="color: black;">{{ data.count }}</td>
+                </tr>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Display</button>
+            </form>
+        </div>
+
+        <div class="card" style="width: 25rem; padding: 1rem; border: 1px solid #ccc; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+            <h5 class="card-title" style="text-align: center; margin-bottom: 1rem;">Select Contribution</h5>
+            <form action="{{ url_for('verifications.index') }}" method="get" style="display: flex; flex-direction: column; width: 100%;">
+                <select name="contribution-names" id="contribution-names" class="form-select" style="margin-bottom: 10px;" onchange="this.form.submit();">
+                    {% for contribution_name in data.contributions %}
+                        <option value="{{ contribution_name[0] }}" {% if data.chosen_contribution[0] == contribution_name[0] %}selected{% endif %}>
+                            {{ contribution_name[0] }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </form>
+            <div class="p-3 text-primary-emphasis bg-secondary-subtle border border-primary-subtle rounded-3" style="width: 100%; background-color: #f8f9fa;">
+                <table class="table table-borderless table-sm" style="width: 100%;">
+                    <tbody>
+                        <tr>
+                            <td style="font-weight: bold;">Name:</td>
+                            <td style="color: green;">{{ data.chosen_contribution[0] }}</td>
+                        </tr>
+                        <tr>
+                            <td style="font-weight: bold;">Amount:</td>
+                            <td style="color: red;">&#8369; {{ data.chosen_contribution[1] }}</td>
+                        </tr>
+                        <tr>
+                            <td style="font-weight: bold;">Academic Year:</td>
+                            <td style="color: blue;">{{ data.chosen_contribution[2] }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="operations" style="margin: 1.5rem auto 0px auto;">
+        <form class="d-flex" role="search" action="{{ url_for('verifications.search') }}" method="get" style="width: 100%; gap: 1rem;">
+            <input type="hidden" name="contribution-names" id="contribution-names" value="{{ data.chosen_contribution[0] }}">
+            <select name="column-search" id="column-search" class="form-select-lg" style="flex: 1;">
+                <option class="columns-options" value="full_name" {% if data.column == 'full_name' %}selected{% endif %}>Name</option>
+                <option class="columns-options" value="id_number" {% if data.column == 'id_number' %}selected{% endif %}>ID Number</option>
+            </select>
+            <input class="form-control me-2" id="param-search" type="search" name="param-search" placeholder="Search" value="{{ data.searched }}" aria-label="Search" style="flex: 2;">
+            <button class="search-btn btn btn-outline-secondary" type="submit">Search</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="text-end" style="margin-right: 10%;">
+    <button type="submit" class="btn btn-outline-info verify-button" data-bs-toggle="modal" data-bs-target="#verifyModal">Verify</button>
+</div>
+<table class="table table-light table-hover">
+    <thead>
+        <tr>
+            <th scope="col"><input type="checkbox" id="selectAll" onclick="toggleAll(this)"></th>
+            <th scope="col">Transaction ID</th>
+            <th scope="col">Date and Time</th>
+            <th scope="col">Student ID</th>
+            <th scope="col">Name</th>
+            <th scope="col">Payment Mode</th>
+            <th scope="col">Note</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for verification in data.verifications %}
+            <tr>
+                <td>
+                    <input type="checkbox"
+                           name="rowSelect" 
+                           value="{{ verification[0] }}" 
+                           onclick="updateSelectAll()">
+                </td>
+                <td>{{ verification[0] }}</td>
+                <td>{{ verification[1] }}</td>
+                <td>{{ verification[2] }}</td>
+                <td>{{ verification[3] }}</td>
+                <td>{{ verification[4] }}</td>
+                <td>{{ verification[5] }}</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- Modal Structure -->
+<div class="modal fade" id="verifyModal" tabindex="-1" aria-labelledby="verifyModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="verifyModalLabel">Verify Transactions</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form action="{{ url_for('verifications.verify') }}" method="post" style="display: flex; flex-direction: column; width: 100%;">
+                    {{ form.csrf_token() }}
+                    <input type="hidden" name="contribution_amount" value="{{ data.chosen_contribution[1] }}">
+                    <div class="input-group mb-3">
+                        {{ form.contribution_name.label(class="input-group-text") }}
+                        {{ form.contribution_name(class="form-control", value=data.chosen_contribution[0], id="item-contribution_name", readonly=true) }}
+                    </div>
+
+                    <div class="input-group mb-3">
+                        {{ form.block_rep.label(class="input-group-text") }}
+                        {{ form.block_rep(class="form-control {% if form.block_rep.errors %}is-invalid{% endif %}", placeholder="e.g. Doe, John", id="item-block_rep") }}
+                        {% if form.block_rep.errors %}
+                        <div class="invalid-feedback">
+                            {% for error in form.block_rep.errors %} {{ error }} {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="input-group mb-3">
+                        {{ form.date.label(class="input-group-text") }}
+                        {{ form.date(class="form-control {% if form.date.errors %}is-invalid{% endif %}", id="item-date_time", readonly=true) }}
+                        {% if form.date.errors %}
+                        <div class="invalid-feedback">
+                            {% for error in form.date.errors %} {{ error }} {% endfor %}    
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="input-group mb-3">
+                        {{ form.year_level.label(class="input-group-text") }}
+                        {{ form.year_level(class="form-control form-select {% if form.year_level.errors %}is-invalid{% endif %}", id="item-year_level") }}
+                        {% if form.year_level.errors %}
+                        <div class="invalid-feedback">
+                            {% for error in form.year_level.errors %} {{ error }} {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="input-group mb-3">
+                        {{ form.program_code.label(class="input-group-text") }}
+                        {{ form.program_code(class="form-control {% if form.program_code.errors %}is-invalid{% endif %}", placeholder="e.g. BSCS", id="item-program_code") }}
+                        {% if form.program_code.errors %}
+                        <div class="invalid-feedback">
+                            {% for error in form.program_code.errors %} {{ error }} {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="input-group mb-3">
+                        {{ form.total_amount.label(class="input-group-text", id="item-total_amount") }}
+                        {{ form.program_code(class="form-control", id="item-program_code",  readonly=true) }}
+                    </div>
+
+                    <!-- Table for Transaction IDs and Student IDs -->
+                    <table class="table table-bordered" id="transaction-table">
+                        <thead>
+                            <tr>
+                                <th>Transaction ID</th>
+                                <th>Student ID</th>
+                                <th>Student Name</th>
+                                <th>Note</th>
+                            </tr>
+                        </thead>
+                        <tbody id="transaction-body">
+                            <!-- Rows will be populated by JavaScript -->
+                        </tbody>
+                    </table>
+                    <hr>
+                    <button type="submit" class="btn btn-primary" style="width: 100%; padding: 0.4rem;">Verify</button>
+                </form>                
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.querySelector('.verify-button').addEventListener('click', function() {
+        const checkboxes = document.querySelectorAll('input[name="rowSelect"]:checked');
+        const transactionBody = document.getElementById('transaction-body');
+        const amountInput = document.getElementById('item-amount');
+
+        // Clear existing rows
+        transactionBody.innerHTML = '';
+        let totalAmount = 0;
+
+        checkboxes.forEach((checkbox) => {
+            const row = checkbox.closest('tr');
+            const transactionId = row.querySelector('td:nth-child(2)').textContent; // Get Transaction ID
+            const studentId = row.querySelector('td:nth-child(4)').textContent; // Get Student ID
+            const studentName = row.querySelector('td:nth-child(5)').textContent; // Get Student Name
+            const note = row.querySelector('td:nth-child(7)').textContent; // Get Note from verification[5]
+
+            // Create a new table row with inputs for the note
+            const newRow = document.createElement('tr');
+            newRow.innerHTML = `
+                <td>${transactionId}</td>
+                <td><input type="text" name="student_id" value="${studentId}" class="form-control" readonly/></td>
+                <td><input type="text" name="student_name" value="${studentName}" class="form-control" readonly/></td>
+                <td><input type="text" name="transaction_message" value="${note}" class="form-control" maxlength="255"/></td>
+            `;
+            transactionBody.appendChild(newRow);
+            totalAmount++; // Increment total amount based on the number of transactions
+        });
+
+        // Update the amount field
+        amountInput.value = totalAmount * {{ data.chosen_contribution[1] }};
+    });
+</script>
+
+
+
+
+<script>
+    function toggleAll(source) {
+        const checkboxes = document.querySelectorAll('input[type="checkbox"][name="rowSelect"]');
+        checkboxes.forEach((checkbox) => {
+            if (!checkbox.disabled) {  // Only change the state of enabled checkboxes
+                checkbox.checked = source.checked;
+            }
+        });
+        
+        // Uncheck all disabled checkboxes
+        checkboxes.forEach((checkbox) => {
+            if (checkbox.disabled) {
+                checkbox.checked = false; // Uncheck disabled checkboxes
+            }
+        });
+    }
+
+    function updateSelectAll() {
+        const checkboxes = document.querySelectorAll('input[type="checkbox"][name="rowSelect"]');
+        const allChecked = Array.from(checkboxes).every(checkbox => checkbox.checked && !checkbox.disabled);
+        document.getElementById('selectAll').checked = allChecked;
+    }
+</script>
+{% endblock %}

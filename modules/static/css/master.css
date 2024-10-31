@@ -1,0 +1,226 @@
+body,
+html {
+    font-family: sans-serif;
+    height: 100vh;
+    margin: 0;
+    padding: 0;
+    overflow: none;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+.alert {
+    position: relative;
+    margin-bottom: 1rem;
+}
+
+.alert .close {
+    position: absolute;
+    top: 0;
+    right: 0;
+    padding: 0.75rem 1.25rem;
+    margin: -0.75rem -1.25rem -0.75rem auto;
+    color: inherit;
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+}
+
+.title-card {
+    position: fixed;
+    /* Fixes the header to the top */
+    top: 0;
+    /* Positions it at the top */
+    left: 0;
+    /* Aligns it to the left */
+    z-index: 1000;
+    /* Ensures it stays above other content */
+    background-color: rgb(225, 225, 225);
+    padding: 10px;
+    /* Adjusted for vertical padding */
+    width: 100%;
+    height: 10vh;
+    margin: 0 auto;
+    display: flex;
+    /* Use flexbox */
+    justify-content: center;
+    /* Center horizontally */
+    align-items: center;
+    /* Center vertically */
+}
+
+.title-name {
+    text-align: center;
+}
+
+#navigation-bar {
+    position: fixed;
+    height: 90vh;
+    width: 200px;
+    margin-top: 10vh;
+    background-color: #f1f1f1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+#navigation-bar .profile-picture {
+    background-color: #f1f1f1;
+}
+
+#navigation-links {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    width: 200px;
+    background-color: #f1f1f1;
+}
+
+#navigation-links li a {
+    display: block;
+    color: #000;
+    padding: 8px 16px;
+    text-decoration: none;
+    margin: 20px 0;
+}
+
+/* Change the link color on hover */
+#navigation-links li a:hover {
+    background-color: #555;
+    color: white;
+}
+
+/* Styles for disabled links */
+#navigation-links li a.disabled {
+    pointer-events: none;
+    /* Prevent click events */
+    color: white;
+    /* Change text color to indicate disabled state */
+    background-color: #1275e7;
+    /* Optional: Change background color */
+    margin: 20px 0;
+    /* Keep the same margin for layout consistency */
+    opacity: 0.6;
+    /* Make it slightly transparent */
+}
+
+.credits {
+    text-align: center;
+    margin-top: 20px;
+    /* Space above credits */
+    font-size: 14px;
+    /* Adjust font size as needed */
+    color: #666;
+    /* Light gray for less prominence */
+    padding-bottom: 10px;
+    /* Space at the bottom */
+}
+
+section {
+    float: right;
+    width: calc(100vw - 220px);
+    margin: 10vh auto 10px 10px;
+}
+
+.operation-area {
+    display: block;
+    width: 80%;
+    margin: 10px auto;
+    padding: 2rem;
+}
+
+.operation-area .operations {
+    display: flex;
+    justify-content: center;
+    width: 80%;
+    margin: 0 auto;
+}
+
+input[type="file"] {
+    display: none;
+}
+
+.custom-file-upload {
+    border: 1px solid #ccc;
+    display: inline-block;
+    padding: 6px 12px;
+    cursor: pointer;
+}
+
+.operation-area .operations .d-flex {
+    width: 80%;
+}
+
+.operation-area .operations .d-flex #param-search {
+    margin: 0 10px;
+}
+
+.operation-area .operations .d-flex .search-btn {
+    margin: 0 10px;
+}
+
+.operation-area .operations .d-flex #column-search {
+    cursor: pointer;
+    font-size: medium;
+    margin: 0 10px;
+}
+
+.operation-area .operations .add-form {
+    margin: 0 10px;
+}
+
+.operation-area .operations .card {
+    width: 25rem;
+    padding: 1.5rem;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.card .card-title {
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+.datetime-input {
+    width: 100%;
+    padding: 0.4rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    margin-bottom: 8px;
+}
+
+.table {
+    border-color: black;
+    text-align: center;
+    width: 80%;
+    margin: 0 auto;
+    table-layout: auto;
+    /* Allow the table to adjust column widths based on content */
+}
+
+.table th {
+    font-size: 18px;
+}
+
+.table td {
+    font-size: 14px;
+    vertical-align: middle;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Custom styles for form fields */
+.form-control.is-invalid,
+.form-select.is-invalid {
+    border-color: #dc3545;
+}
+
+/* Custom styles for invalid feedback */
+.invalid-feedback {
+    font-size: 0.875rem;
+    display: block;
+}

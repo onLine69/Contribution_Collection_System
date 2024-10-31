@@ -26,6 +26,9 @@ python-dotenv = "==1.0.1"
 virtualenv = "==20.26.6"
 werkzeug = "==3.0.4"
 wtforms = "==3.1.2"
+xlrd = "*"
+pandas = "*"
+openpyxl = "*"
 
 [dev-packages]
 

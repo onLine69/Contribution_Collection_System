@@ -1,0 +1,142 @@
+{% extends "master.html" %}
+
+{% block info %}
+<div class="operation-area">
+    <div class="operations">
+        <form class="d-flex" role="search" action="{{ url_for('students.search') }}" method="get">
+            <select name="column-search" id="column-search" class="form-select-lg">
+                <option class="columns-options" value="full_name" {% if data.column=='full_name' %}selected{% endif %}>Name</option>
+                <option class="columns-options" value="id_number" {% if data.column=='id_number' %}selected{% endif %}>ID Number</option>
+                <option class="columns-options" value="gender" {% if data.column=='gender' %}selected{% endif %}>Gender</option>
+                <option class="columns-options" value="year_level" {% if data.column=='year_level' %}selected{% endif %}>Year Level</option>
+                <option class="columns-options" value="program_code" {% if data.column=='program_code' %}selected{% endif %}>Program</option>
+            </select>
+            <input class="form-control me-2" id="param-search" type="search" name="param-search" placeholder="Search" value="{{ data.searched }}" aria-label="Search">
+            <button class="search-btn btn btn-outline-secondary" type="submit">Search</button>
+        </form>
+
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#form-modal" onclick="clearModal()">Add</button>
+        <form action="{{ url_for('students.bulkAdd') }}" id="upload-form" method="post" enctype="multipart/form-data">
+            <label for="file-upload" class="custom-file-upload btn btn-secondary">Import List</label>
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input id="file-upload" name="file-upload" type="file" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" />
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<table class="table table-light table-hover">
+    <thead>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col">ID Number</th>
+        <th scope="col">Gender</th>
+        <th scope="col">Year</th>
+        <th scope="col">Program</th>
+        <th scope="col" colspan="2">Number of Students = {{ data.count }}</th>
+    </thead>
+    <tbody>
+        {% for student in data.students %}
+            <tr>
+                <td>{{ loop.index0 + 1}}</td>
+                <td title="{{ student[0] }}">{{ student[0] }}</td>
+                <td title="{{ student[1] }}">{{ student[1] }}</td>
+                <td title="{{ student[2] }}">{{ student[2] }}</td>
+                <td title="{{ student[3] }}">{{ student[3] }}</td>
+                <td title="{{ student[4] }}">{{ student[4] }}</td>
+                <td>
+                    <button type="button" data-bs-toggle="modal" class="edit-item btn btn-outline-warning btn-sm"
+                        data-bs-target="#form-modal" 
+                        data-full_name="{{ student[0] }}" 
+                        data-id_number="{{ student[1] }}"
+                        data-gender="{{ student[2] }}" 
+                        data-year_level="{{ student[3] }}"
+                        data-program_code="{{ student[4] }}">Edit</button>
+                </td>
+                <td>
+                    <form action="{{ url_for('students.delete', id_number=student[1]) }}" method="post">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="delete-item btn btn-outline-danger btn-sm" data-id="{{ student[1] }}">Delete</button>
+                    </form>
+                </td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- Modal -->
+<div class="modal fade" id="form-modal" tabindex="-1" aria-labelledby="formModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="formModalLabel"></h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form action="{{ url_for('students.index') }}" method="post" class="form-select">
+                    {{ form.csrf_token() }}
+                    <input type="hidden" name="student-id" id="student-id">
+
+                    <div class="input-group mb-3">
+                        {{ form.full_name.label(class="input-group-text") }}
+                        {{ form.full_name(class="form-control {% if form.full_name.errors %}is-invalid{% endif %}", placeholder="e.g. Doe, John", id="student-full_name") }}
+                        {% if form.full_name.errors %}
+                        <div class="invalid-feedback">
+                            {% for error in form.full_name.errors %} {{ error }} {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="input-group mb-3">
+                        {{ form.id_number.label(class="input-group-text") }}
+                        {{ form.id_number(class="form-control {% if form.id_number.errors %}is-invalid{% endif %}", placeholder="e.g. 2022-2534", id="student-id_number") }}
+                        {% if form.id_number.errors %}
+                        <div class="invalid-feedback">
+                            {% for error in form.id_number.errors %} {{ error }} {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="input-group mb-3">
+                        {{ form.gender.label(class="input-group-text") }}
+                        {{ form.gender(class="form-control form-select {% if form.gender.errors %}is-invalid{% endif %}", id="student-gender") }}
+                        {% if form.gender.errors %}
+                        <div class="invalid-feedback">
+                            {% for error in form.gender.errors %} {{ error }} {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="input-group mb-3">
+                        {{ form.year_level.label(class="input-group-text") }}
+                        {{ form.year_level(class="form-control form-select {% if form.year_level.errors %}is-invalid{% endif %}", id="student-year_level") }}
+                        {% if form.year_level.errors %}
+                        <div class="invalid-feedback">
+                            {% for error in form.year_level.errors %} {{ error }} {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="input-group mb-3">
+                        {{ form.program_code.label(class="input-group-text") }}
+                        {{ form.program_code(class="form-control form-select {% if form.program_code.errors %}is-invalid{% endif %}", placeholder="e.g. BSCS", id="student-program_code") }}
+                        {% if form.program_code.errors %}
+                        <div class="invalid-feedback">
+                            {% for error in form.program_code.errors %} {{ error }} {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary" id="modal-submit-button"></button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript" src="{{ url_for('static', filename='javascript/students/bulkAdd.js') }}"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='javascript/students/operations.js') }}"></script>
+{% endblock %}

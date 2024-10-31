@@ -1,0 +1,149 @@
+{% extends "master.html" %}
+
+{% block info %}
+<div class="operation-area">
+    <div class="operations">
+        <div class="card">
+            <h5 class="card-title">Select Contribution</h5>
+            <form action="{{ url_for('transactions.index') }}" method="get" style="display: flex; flex-direction: column; width: 100%;">
+                <select name="contribution-names" id="contribution-names" class="form-select" style="margin-bottom: 10px;" onchange="this.form.submit();">
+                    {% for contribution_name in data.contributions %}
+                        <option value="{{ contribution_name[0] }}" {% if data.chosen_contribution[0] == contribution_name[0] %}selected{% endif %}>
+                            {{ contribution_name[0] }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </form>
+            
+            <!-- Button container -->
+            <div style="display: flex; justify-content: space-around; margin-top: 1rem;">
+                <!-- Clear Filter button -->
+                <form action="{{ url_for('transactions.index') }}" method="get">
+                    <input type="hidden" name="contribution-names" id="contribution-names" value="{{ data.chosen_contribution[0] }}">
+                    <button type="submit" class="btn btn-dark">
+                        Clear Filter
+                    </button>
+                </form>
+                <!-- Button to trigger the modal -->
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#filterModal">
+                    Open Filter List
+                </button>
+            </div>
+        </div>
+        <div class="card">
+            <h5 class="card-title">Information</h5>
+            <div class="p-3 bg-light border border-dark rounded-3">
+                <table class="table table-borderless table-sm" style="width: 100%;">
+                    <tbody>
+                        <tr>
+                            <td style="font-weight: bold;">Name:</td>
+                            <td style="color: green;">{{ data.chosen_contribution[0] }}</td>
+                        </tr>
+                        <tr>
+                            <td style="font-weight: bold;">Amount:</td>
+                            <td style="color: red;">&#8369; {{ data.chosen_contribution[1] }}</td>
+                        </tr>
+                        <tr>
+                            <td style="font-weight: bold;">Academic Year:</td>
+                            <td style="color: blue;">{{ data.chosen_contribution[2] }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <table class="table table-borderless table-sm" style="width: 100%; margin-top: 0.5rem;">
+                <tbody>
+                    <tr>
+                        <td style="font-weight: bold; color: #333;"># of Transactions:</td>
+                        <td style="color: black;">{{ count }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="operations" style="margin: 1.5rem auto 0px auto;">
+        <form class="d-flex" role="search" action="{{ url_for('transactions.search') }}" method="get" style="width: 100%; gap: 1rem;">
+            <input type="hidden" name="contribution-names" id="contribution-names" value="{{ data.chosen_contribution[0] }}">
+            <select name="column-search" id="column-search" class="form-select-lg" style="flex: 1;">
+                <option class="columns-options" value="full_name" {% if data.column == 'full_name' %}selected{% endif %}>Name</option>
+                <option class="columns-options" value="id_number" {% if data.column == 'id_number' %}selected{% endif %}>ID Number</option>
+            </select>
+            <input class="form-control me-2" id="param-search" type="search" name="param-search" placeholder="Search" value="{{ data.searched }}" aria-label="Search" style="flex: 2;">
+            <button class="search-btn btn btn-outline-secondary" type="submit">Search</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+{% block content %}
+<table class="table table-light table-hover">
+    <thead>
+        <th scope="col">Transaction ID</th>
+        <th scope="col">Date and Time</th>
+        <th scope="col">Student ID</th>
+        <th scope="col">Name</th>
+        <th scope="col">Payment Mode</th>
+        <th scope="col">Status</th>
+        <th scope="col">Note</th>
+    </thead>
+    <tbody>
+        {% for transaction in data.transactions %}
+            <tr>
+                <td title="{{ transaction[0] }}">{{ transaction[0] }}</td>
+                <td title="{{ transaction[1] }}">{{ transaction[1] }}</td>
+                <td title="{{ transaction[2] }}">{{ transaction[2] }}</td>
+                <td title="{{ transaction[3] }}">{{ transaction[3] }}</td>
+                <td title="{{ transaction[4] }}">{{ transaction[4] }}</td>
+                <td title="{{ transaction[5] }}">{{ transaction[5] }}</td>
+                <td title="{{ transaction[6] }}">{{ transaction[6] }}</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- Modal Structure -->
+<div class="modal fade" id="filterModal" tabindex="-1" aria-labelledby="filterModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="filterModalLabel">Filter List</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form action="{{ url_for('transactions.index') }}" method="get" style="display: flex; flex-direction: column; width: 100%;">
+                    <input type="hidden" name="contribution-names" id="contribution-names" value="{{ data.chosen_contribution[0] }}">
+
+                    <select name="program-code" id="program-code" class="form-select" style="margin-bottom: 8px;">
+                        <option value="" selected>--Display Program--</option>
+                        {% for program_code in data.program_codes %}
+                            <option value="{{ program_code[0] }}" {% if data.display_program_code == program_code[0] %}selected{% endif %}>{{ program_code[0] }}</option>
+                        {% endfor %}
+                    </select>
+                    
+                    {% set display_year = ["1st Year", "2nd Year", "3rd Year", "4th Year"] %}
+                    <select name="year-level" id="year-level" class="form-select" style="margin-bottom: 8px;">
+                        <option value="" selected>--Display Year--</option>
+                        {% for y in range(0, 4) %}
+                            <option value="{{ y + 1 }}" {% if data.display_year_level|int == y + 1 %}selected{% endif %}>{{ display_year[y] }}</option>
+                        {% endfor %}
+                    </select>
+
+                    <select name="display-status" id="display-status" class="form-select" style="margin-bottom: 8px;">
+                        {% set display_status = ["All", "Pending", "Accepted"] %}
+                        {% for status in display_status %}
+                            <option value="{{ status }}" {% if data.display_selected_status == status %}selected{% endif %}>{{ status }}</option>
+                        {% endfor %}
+                    </select>
+
+                    <label for="from-point" style="margin-bottom: 2px;">From:</label>
+                    <input type="datetime-local" class="datetime-input" name="from-point" id="from-point" value="{{ data.from_point }}" style="">
+
+                    <label for="max-point" style="margin-bottom: 2px;">Till:</label>
+                    <input type="datetime-local" class="datetime-input" name="to-point" id="to-point" value="{{ data.to_point }}" style="width: 100%; padding: 0.4rem; border: 1px solid #ccc; border-radius: 4px; margin-bottom: 8px;">
+
+                    <button type="submit" class="btn btn-primary" style="width: 100%; padding: 0.4rem;">Display</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
