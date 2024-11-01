@@ -169,8 +169,8 @@
                     </div>
 
                     <div class="input-group mb-3">
-                        {{ form.total_amount.label(class="input-group-text", id="item-total_amount") }}
-                        {{ form.program_code(class="form-control", id="item-program_code",  readonly=true) }}
+                        {{ form.total_amount.label(class="input-group-text") }}
+                        {{ form.total_amount(class="form-control", id="item-total_amount",  readonly=true) }}
                     </div>
 
                     <!-- Table for Transaction IDs and Student IDs -->
@@ -199,7 +199,7 @@
     document.querySelector('.verify-button').addEventListener('click', function() {
         const checkboxes = document.querySelectorAll('input[name="rowSelect"]:checked');
         const transactionBody = document.getElementById('transaction-body');
-        const amountInput = document.getElementById('item-amount');
+        const amountInput = document.getElementById('item-total_amount');
 
         // Clear existing rows
         transactionBody.innerHTML = '';
