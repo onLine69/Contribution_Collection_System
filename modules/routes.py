@@ -7,7 +7,7 @@ from . import app
 @app.route('/', methods=["GET", "POST"])
 def index():
     program_codes = programCodes("CCS-EC")
-
+    contributions = displayContributions("CCS-EC", ACADEMIC_YEAR)
     academic_years = ACADEMIC_YEAR.split("-")
     program_name=None
     chosen_year = None
@@ -24,8 +24,8 @@ def index():
         selected_month = selected_month
         chosen_year = selected_year
 
-        contribution_name_1 = "1st Sem Membership Fee"
-        contribution_name_2 = "2nd Sem Membership Fee"
+        contribution_name_1 = contributions[0][0]
+        contribution_name_2 = contributions[1][0]
         paid_count = { 
             'fcontribution': {
                 'name': contribution_name_1,
@@ -36,6 +36,7 @@ def index():
                 'data': fetchPaid(contribution_name_2, int(selected_month), selected_program, chosen_year)
             }
         }
+        print(paid_count)
 
         unpaid_count = { 
             'fcontribution': {
@@ -48,7 +49,9 @@ def index():
             }
         }
 
-    print(paid_count)
+    data = {
+        'tab_name': "Dashboard"
+    }
 
     return render_template('index.html', 
                            program_codes=program_codes,
@@ -58,4 +61,4 @@ def index():
                            selected_month = selected_month,
                            paid_count = paid_count,
                            unpaid_count = unpaid_count, 
-                           current_tab="Dashboard")
+                           data=data)
