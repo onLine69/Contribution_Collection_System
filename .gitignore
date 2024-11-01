@@ -297,3 +297,4 @@ sketch
 .ionide
 
 # End of https://www.toptal.com/developers/gitignore/api/flask,python,react,visualstudiocode
+.vercel
