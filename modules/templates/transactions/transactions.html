@@ -54,7 +54,7 @@
                 <tbody>
                     <tr>
                         <td style="font-weight: bold; color: #333;"># of Transactions:</td>
-                        <td style="color: black;">{{ count }}</td>
+                        <td style="color: black;">{{ data.count }}</td>
                     </tr>
                 </tbody>
             </table>
@@ -135,7 +135,7 @@
                     </select>
 
                     <label for="from-point" style="margin-bottom: 2px;">From:</label>
-                    <input type="datetime-local" class="datetime-input" name="from-point" id="from-point" value="{{ data.from_point }}" style="">
+                    <input type="datetime-local" class="datetime-input" name="from-point" id="from-point" value="{{ data.from_point }}" style="width: 100%; padding: 0.4rem; border: 1px solid #ccc; border-radius: 4px; margin-bottom: 8px;">
 
                     <label for="max-point" style="margin-bottom: 2px;">Till:</label>
                     <input type="datetime-local" class="datetime-input" name="to-point" id="to-point" value="{{ data.to_point }}" style="width: 100%; padding: 0.4rem; border: 1px solid #ccc; border-radius: 4px; margin-bottom: 8px;">

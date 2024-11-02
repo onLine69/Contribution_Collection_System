@@ -1,6 +1,7 @@
 from flask import render_template, url_for, redirect, request
 from modules.controller import programCodes, displayContributions, fetchPaid, fetchUnpaid
 from config import ACADEMIC_YEAR
+from modules.form import LoginForm
 from . import app
 
 # The Homepage

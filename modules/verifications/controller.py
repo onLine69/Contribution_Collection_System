@@ -1,5 +1,6 @@
 from modules import mysql
 
+
 def displayAll(contribution_name, academic_year, program_code, year_level):
     try:
         cur = mysql.connection.cursor()
@@ -75,10 +76,19 @@ def verifyTransactions(name, acad_year, amount, payer_ids, transaction_messages)
                         INSERT INTO `transactions` (`contribution_name`, `contribution_ay`, `payer_id`, `payment_mode`, `amount`, `transaction_message`, `status`)
                         VALUES (%s, %s, %s, "Cash", %s, %s, "Accepted");
                         """
+        check_query = """
+            SELECT COUNT(`payer_id`) 
+            FROM `transactions` 
+            WHERE  `payer_id` = %s AND `contribution_name` = %s AND `contribution_ay` = %s AND `status` = "Accepted"
+        """ 
         
         for n in range(0, len(payer_ids)):
-            cur.execute(transact_query, (name, acad_year, payer_ids[n], amount, transaction_messages[n]))
-            mysql.connection.commit()
+            cur.execute(check_query, (payer_ids[n], name, acad_year))
+            recorded = cur.fetchone()[0]
+            print(recorded)
+            if recorded == 0:
+                cur.execute(transact_query, (name, acad_year, payer_ids[n], amount, transaction_messages[n]))
+                mysql.connection.commit()
         
     except mysql.connection.Error as e:
         mysql.connection.rollback()  # Rollback in case of error

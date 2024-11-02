@@ -139,16 +139,6 @@
                     </div>
 
                     <div class="input-group mb-3">
-                        {{ form.date.label(class="input-group-text") }}
-                        {{ form.date(class="form-control {% if form.date.errors %}is-invalid{% endif %}", id="item-date_time", readonly=true) }}
-                        {% if form.date.errors %}
-                        <div class="invalid-feedback">
-                            {% for error in form.date.errors %} {{ error }} {% endfor %}    
-                        </div>
-                        {% endif %}
-                    </div>
-
-                    <div class="input-group mb-3">
                         {{ form.year_level.label(class="input-group-text") }}
                         {{ form.year_level(class="form-control form-select {% if form.year_level.errors %}is-invalid{% endif %}", id="item-year_level") }}
                         {% if form.year_level.errors %}

@@ -19,16 +19,16 @@ def index():
         'display_year_level': request.args.get('year-level', None, type=str),
         'display_selected_status': request.args.get('display-status', 'All', type=str),
         'program_codes': programCodes("CCS-EC"),
-        'from_date': request.args.get('from-point', None),
-        'to_date': request.args.get('to-point', None)
+        'from_point': request.args.get('from-point', None),
+        'to_point': request.args.get('to-point', None)
     }
     data['transactions'] = displayAll(data['chosen_contribution'][0], 
                               ACADEMIC_YEAR, 
                               data['display_selected_status'], 
                               data['display_program_code'], 
                               data['display_year_level'], 
-                              data['from_date'], 
-                              data['to_date'])
+                              data['from_point'], 
+                              data['to_point'])
     data['count'] = len(data['transactions'])
     
     return render_template('transactions/transactions.html', data=data)
@@ -55,8 +55,8 @@ def search():
                 'display_year_level': None,
                 'display_selected_status': None,
                 'program_codes': programCodes("CCS-EC"),
-                'from_date': None,
-                'to_date': None
+                'from_point': None,
+                'to_point': None
             }
             
             data['transactions'] = searchTransactions(data['column'], 

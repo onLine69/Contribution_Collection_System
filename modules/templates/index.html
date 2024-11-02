@@ -1,5 +1,9 @@
 {% extends "master.html" %}
 {% block info %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/2.2.9/purify.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
+
 <div class="operation-area">
     <div class="operations">
         <form class="d-flex" role="search" id="program-show" action="{{ url_for('index') }}" method="post" onsubmit="return validateForm()">
@@ -54,10 +58,10 @@
 {% block content %}
 {% if program_name %}
 <div style="display: flex; justify-content: center; flex-direction: column; align-items: center;">
-    <canvas id="1stSem" style="width: 100%; max-width: 700px;"></canvas>
-    <canvas id="2ndSem" style="width: 100%; max-width: 700px;"></canvas>
+    <canvas class="graph-report" id="1stSem" style="width: 100%; max-width: 700px;"></canvas>
+    <canvas class="graph-report" id="2ndSem" style="width: 100%; max-width: 700px;"></canvas>
 </div>
-
+<button type="button" onclick="printGraphs()">Generate Graph in PDF</button>
 <script>
     const xValues = ["1st", "2nd", "3rd", "4th"];
     const pdata = {{ paid_count | tojson }};
@@ -120,6 +124,69 @@
         legend: {display: true}
       }
     });
+</script>
+
+<script>
+    function printGraphs(){
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({
+            orientation: 'p',
+            unit: 'mm',
+            format: 'a4',
+            putOnlyUsedFonts: true
+        });
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const pageHeight = doc.internal.pageSize.getHeight();
+        // Add Header
+        const header = "{{ url_for('static', filename='images/docs/Header.png') }}";
+        doc.addImage(header, 'PNG', (pageWidth - 183.642)/2 , 5, 183.642, 27.686);
+
+        doc.setFontSize(18);
+        doc.setFont("times", "normal");
+        const title = "Data Summary";
+        const titleWidth = doc.getTextWidth(title);
+        doc.text(title, (pageWidth - titleWidth) / 2, 40); // Centered title
+
+        doc.setFontSize(14);
+        const month_names = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+        const dataDescription = `Program Code: ${"{{program_name}}"} | Month: ${month_names[{{selected_month}}]} | Year: ${"{{chosen_year}}"}` 
+        const dataDescriptionWidth = doc.getTextWidth(dataDescription);
+        doc.text(dataDescription, (pageWidth - dataDescriptionWidth) / 2, 50); // Centered Description
+        
+        const year_levels = ["1st Year", "2nd Year", "3rd Year", "4th Year"];
+        const pdata = {{ paid_count | tojson }};
+        const udata = {{ unpaid_count | tojson }};
+
+        
+        
+        
+        const graphs = document.getElementsByClassName("graph-report");
+        const imgWidth = 170; // Width in mm
+        let positionY = 55; // Starting position for the first image in a row
+
+        
+        for (let i = 0; i < graphs.length; i++){
+            const imgData = graphs[i].toDataURL('image/png');
+            const imgHeight = (graphs[i].height * imgWidth) / graphs[i].width;
+
+            doc.addImage(imgData, 'PNG', (pageWidth - imgWidth)/2, positionY, imgWidth, imgHeight);
+
+            const options = {
+                startY: positionY + imgHeight + 5, // Vertical position to start the table (in mm)
+            };
+
+            doc.autoTable(year_levels, rows[i], options)
+            
+            positionY += imgHeight + 10; // Move to the right for the next image
+
+        }
+
+        // Add Footers
+        const footers = "{{ url_for('static', filename='images/docs/Footer.png') }}";
+        doc.addImage(footers, 'PNG', (pageWidth - 183.642)/2 , pageHeight - 19.812, 183.642, 19.812);
+        
+        doc.save(pdata.fcontribution.name + " (" + "{{ program_name }}" + ") Graph.pdf");
+    }
 </script>
 {% endif %}
 {% endblock %}
