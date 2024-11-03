@@ -127,6 +127,7 @@
 </script>
 
 <script>
+    // Generate pdf of the presented graphs
     function printGraphs(){
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF({
@@ -149,7 +150,7 @@
 
         doc.setFontSize(14);
         const month_names = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-        const dataDescription = `Program Code: ${"{{program_name}}"} | Month: ${month_names[{{selected_month}}]} | Year: ${"{{chosen_year}}"}` 
+        const dataDescription = `Program Code: ${"{{program_name}}"} | Month: ${month_names[{{selected_month}} - 1]} | Year: ${"{{chosen_year}}"}` 
         const dataDescriptionWidth = doc.getTextWidth(dataDescription);
         doc.text(dataDescription, (pageWidth - dataDescriptionWidth) / 2, 50); // Centered Description
         
@@ -157,8 +158,6 @@
         const pdata = {{ paid_count | tojson }};
         const udata = {{ unpaid_count | tojson }};
 
-        
-        
         
         const graphs = document.getElementsByClassName("graph-report");
         const imgWidth = 170; // Width in mm
@@ -170,15 +169,29 @@
             const imgHeight = (graphs[i].height * imgWidth) / graphs[i].width;
 
             doc.addImage(imgData, 'PNG', (pageWidth - imgWidth)/2, positionY, imgWidth, imgHeight);
-
-            const options = {
-                startY: positionY + imgHeight + 5, // Vertical position to start the table (in mm)
-            };
-
-            doc.autoTable(year_levels, rows[i], options)
             
             positionY += imgHeight + 10; // Move to the right for the next image
+            const pdataUse = i === 0 ? pdata.fcontribution.data : pdata.scontribution.data;
+            const udataUse = i === 0 ? udata.fcontribution.data : udata.scontribution.data;
 
+            let labelPosition = (pageWidth - imgWidth)/2 + 10;
+            for (let y = 0; y < year_levels.length; y++){
+                doc.setFontSize(8);
+                doc.setTextColor(0,0,0);
+                const label = year_levels[y] + ":";
+                const labelWidth = doc.getTextWidth(label);
+                doc.text(label, labelPosition, positionY);
+                const paidData = pdataUse[y] + " Students";
+                const pdataWidth = doc.getTextWidth(paidData);
+                doc.setTextColor(0,0,255);
+                doc.text(paidData, labelPosition + labelWidth + 5, positionY);
+                const unpaidData = udataUse[y] + " Students";
+                doc.setTextColor(255,0,0);
+                doc.text(unpaidData, labelPosition + labelWidth  + 5, positionY + 5)
+                labelPosition += labelWidth + pdataWidth + 20;
+            }
+
+            positionY += 10;
         }
 
         // Add Footers

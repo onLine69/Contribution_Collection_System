@@ -10,16 +10,16 @@
 </head>
 <body>
     <header class="title-card">
-        <h1 class="title-name">Payment Collection System</h1>
+        <h1 class="title-name">PayWolf</h1>
     </header>
     <nav id="navigation-bar">
         <div class="card profile-picture" style="width: 200px; height: 200px; margin-top: 20px;">
-            <a href="www.google.com">
-                <img onc src="{{ url_for('static', filename='images/icons/officer-profile.png') }}" class="card-img-top" alt="Officer Profile">
+            <a href="{{ url_for('profile') }}">
+                <img onc src="{{ url_for('static', filename='images/icons/officer-profile.png') }}" class="card-img-top" alt="Officer Profile" style="border-radius: 50%;">
             </a>
             <div class="card-body">
               <h5 class="card-title center">BUFICOM Officer</h5>
-              <p class="card-text">CCS-EC</p>
+              <p class="card-text">{{session.organization_code}}</p>
             </div>
         </div>
         <ul id="navigation-links">

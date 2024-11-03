@@ -20,6 +20,29 @@ def displayContributions(organization_code :str, academic_year :str):
     finally:
         cur.close()  # Ensure the cursor is closed
 
+def editContributions(fname, famount, sname, samount, organization_code):
+    try:
+        cur = mysql.connection.cursor()
+
+        contributions = displayContributions(organization_code, ACADEMIC_YEAR)
+        alter_query = """
+            UPDATE `contributions`
+            SET `name` = %s, `amount` = %s
+            WHERE `name` = %s AND `collecting_org_code` = %s;
+        """
+
+        cur.execute(alter_query, (fname, famount, contributions[0][0], organization_code))
+        mysql.connection.commit()
+        
+        cur.execute(alter_query, (sname, samount, contributions[1][0], organization_code))
+        mysql.connection.commit()
+    except mysql.connection.Error as e:
+        mysql.connection.rollback()  # Rollback in case of error
+        raise e
+    finally:
+        cur.close()  # Ensure the cursor is closed
+
+
 def searchContributions(column :str, param :str, organization_code :str, academic_year :str):
     try:
         cur = mysql.connection.cursor()
@@ -93,6 +116,35 @@ def fetchUnpaid(program_code :str, paid_count : int):
             count.append(cur.fetchall()[0][0] - paid_count[s])
         
         return count
+    except mysql.connection.Error as e:
+        mysql.connection.rollback()  # Rollback in case of error
+        raise e
+    finally:
+        cur.close()  # Ensure the cursor is closed
+
+def checkCode(code):
+    try:
+        cur = mysql.connection.cursor()
+        fetch_query =   """
+                SELECT `code` FROM `organizations` WHERE `code` = %s;
+            """
+        cur.execute(fetch_query, (code,))
+        return cur.fetchone()[0]
+    except mysql.connection.Error as e:
+        mysql.connection.rollback()  # Rollback in case of error
+        raise e
+    finally:
+        cur.close()  # Ensure the cursor is closed
+
+
+def getOrganization(code :str):
+    try:
+        cur = mysql.connection.cursor()
+        fetch_query =   """
+                SELECT * FROM `organizations` WHERE `code` = %s;
+            """
+        cur.execute(fetch_query, (code,))
+        return cur.fetchone()
     except mysql.connection.Error as e:
         mysql.connection.rollback()  # Rollback in case of error
         raise e

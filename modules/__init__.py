@@ -2,6 +2,7 @@ from flask import Flask
 from flask_mysqldb import MySQL
 from config import SECRET_KEY,DB_NAME, DB_USERNAME, DB_PASSWORD, DB_HOST
 from flask_wtf.csrf import CSRFProtect
+from datetime import timedelta
 from dotenv import load_dotenv
 
 
@@ -28,6 +29,7 @@ def start_app():
     app.register_blueprint(transactions_bp, url_prefix="/transactions")
     app.register_blueprint(verifications_bp, url_prefix="/verifications")
 
+    app.permanent_session_lifetime = timedelta(days=1)
     mysql.init_app(app)
     CSRFProtect(app)
     return app

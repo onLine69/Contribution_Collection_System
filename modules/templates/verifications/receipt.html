@@ -200,7 +200,7 @@
     </main>
 
     <script>
-        function generatePDF() {
+        async function generatePDF() {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF({
                 orientation: 'p',
@@ -260,7 +260,7 @@
 
             for (let i = 0; i < cards.length; i++) {
                 // Capture the current card as a canvas
-                const canvas = html2canvas(cards[i],{
+                const canvas = await html2canvas(cards[i],{
                                     scale: 2
                                 });
                 const imgData = canvas.toDataURL("image/png");

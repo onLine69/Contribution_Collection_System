@@ -10,18 +10,24 @@ import pdfkit
 
 @verifications_bp.route('/', methods=["GET"])
 def index():
+    if 'organization_code' not in session:
+        return redirect(url_for('login'))
+    
+    organization_code = session['organization_code']
+
+
     form = VerificationForm()
 
-    contributions = displayContributions("CCS-EC", ACADEMIC_YEAR)
+    contributions = displayContributions(organization_code, ACADEMIC_YEAR)
     request_contribution = request.args.get('contribution-names', contributions[0][0])
     
     data = {
         'tab_name': "Verify Payments",
         'contributions': contributions,
-        'chosen_contribution': searchContributions('name', request_contribution, "CCS-EC", ACADEMIC_YEAR)[0],
+        'chosen_contribution': searchContributions('name', request_contribution, organization_code, ACADEMIC_YEAR)[0],
         'display_program_code': request.args.get('program-code', None, type=str),
         'display_year_level': request.args.get('year-level', None, type=str),
-        'program_codes': programCodes("CCS-EC")
+        'program_codes': programCodes(organization_code)
     }
 
     data['verifications'] = displayAll(data['chosen_contribution'][0], 
@@ -35,6 +41,11 @@ def index():
 
 @verifications_bp.route('/search', methods=["GET"])
 def search():
+    if 'organization_code' not in session:
+        return redirect(url_for('login'))
+    
+    organization_code = session['organization_code']
+
     form = VerificationForm()
 
     column = request.args.get('column-search', 'full_name', type=str)
@@ -42,7 +53,7 @@ def search():
 
     try:
         if searched:
-            contributions = displayContributions("CCS-EC", ACADEMIC_YEAR)
+            contributions = displayContributions(organization_code, ACADEMIC_YEAR)
             request_contribution = request.args.get('contribution-names', contributions[0][0])
             
             data = {
@@ -50,10 +61,10 @@ def search():
                 'column': column,
                 'searched': searched,
                 'contributions': contributions,
-                'chosen_contribution': searchContributions('name', request_contribution, "CCS-EC", ACADEMIC_YEAR)[0],
+                'chosen_contribution': searchContributions('name', request_contribution, organization_code, ACADEMIC_YEAR)[0],
                 'display_program_code': None,
                 'display_year_level': None,
-                'program_codes': programCodes("CCS-EC")
+                'program_codes': programCodes(organization_code)
             }
 
             data['verifications'] = searchPending(data['column'], 

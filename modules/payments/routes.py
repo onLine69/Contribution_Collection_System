@@ -1,4 +1,4 @@
-from flask import flash, render_template, request, redirect, url_for, flash
+from flask import flash, render_template, request, redirect, url_for, flash, session
 from . import payments_bp
 from modules.payments.controller import displayAll, search as searchStudents, customErrorMessages, fetchPaid, fetchUnpaid, createTransaction
 from modules.controller import displayContributions, searchContributions, programCodes
@@ -7,17 +7,22 @@ from config import ACADEMIC_YEAR
 
 @payments_bp.route('/', methods=["GET", "POST"])
 def index():
-    contributions = displayContributions("CCS-EC", ACADEMIC_YEAR)
+    if 'organization_code' not in session:
+        return redirect(url_for('login'))
+    
+    organization_code = session['organization_code']
+
+    contributions = displayContributions(organization_code, ACADEMIC_YEAR)
     request_contribution = request.args.get('contribution-names', contributions[0][0], type=str)
     
     data = {
         'tab_name': "Payment Records",
         'contributions': contributions,
-        'chosen_contribution': searchContributions('name', request_contribution, "CCS-EC", ACADEMIC_YEAR)[0],
+        'chosen_contribution': searchContributions('name', request_contribution, organization_code, ACADEMIC_YEAR)[0],
         'display_program_code': request.args.get('program-code', None, type=str),
         'display_year_level': request.args.get('year-level', None, type=str),
         'display_selected_status': request.args.get('display-status', 'All', type=str),
-        'program_codes': programCodes("CCS-EC")
+        'program_codes': programCodes(organization_code)
     }
 
     if data['display_selected_status'] == "All":
@@ -42,14 +47,19 @@ def index():
     return render_template('payments/payments.html', data=data)
 
 @payments_bp.route('/search', methods=["GET"])
-def search():   # Display the searched student
+def search():
+    if 'organization_code' not in session:
+        return redirect(url_for('login'))
+    
+    organization_code = session['organization_code']
+
     #fetch the parameters
     column = request.args.get('column-search', 'full_name', type=str)
     searched = request.args.get('param-search', None, type=str)
 
     try:
         if searched:
-            contributions = displayContributions("CCS-EC", ACADEMIC_YEAR)
+            contributions = displayContributions(organization_code, ACADEMIC_YEAR)
             request_contribution = request.args.get('contribution-names', contributions[0][0])
 
             data = {
@@ -57,11 +67,11 @@ def search():   # Display the searched student
                 'column': column,
                 'searched': searched,
                 'contributions': contributions,
-                'chosen_contribution': searchContributions('name', request_contribution, "CCS-EC", ACADEMIC_YEAR)[0],
+                'chosen_contribution': searchContributions('name', request_contribution, organization_code, ACADEMIC_YEAR)[0],
                 'display_program_code': None,
                 'display_year_level': None,
                 'display_selected_status': None,
-                'program_codes': programCodes("CCS-EC")
+                'program_codes': programCodes(organization_code)
             }
 
             data['students'] = searchStudents(data['column'], 

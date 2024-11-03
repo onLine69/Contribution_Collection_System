@@ -1,4 +1,4 @@
-from flask import flash, render_template, request, redirect, url_for, flash
+from flask import flash, render_template, request, redirect, url_for, flash, session
 from . import students_bp
 from modules.students.controller import displayAll, search as searchStudents, add as addStudent, adds, edit as editStudent, customErrorMessages, delete as deleteStudent
 from modules.students.forms import StudentForm
@@ -7,8 +7,12 @@ from modules import mysql
 
 @students_bp.route('/', methods=["GET", "POST"])
 def index():
+    if 'organization_code' not in session:
+        return redirect(url_for('login'))
+    
+    organization_code = session['organization_code']
     form = StudentForm()
-    form.program_code.choices = [(program[0], program[0]) for program in programCodes("CCS-EC")]
+    form.program_code.choices = [(program[0], program[0]) for program in programCodes(organization_code)]
     
     students = displayAll()
     data = {
@@ -58,6 +62,10 @@ def bulkAdd():
 
 @students_bp.route('/search', methods=["GET"])
 def search():
+    if 'organization_code' not in session:
+        return redirect(url_for('login'))
+    
+    organization_code = session['organization_code']
     try:
         #fetch the parameters
         column_name = request.args.get('column-search', 'student_id', type=str)
@@ -66,7 +74,7 @@ def search():
         if searched_item:
             # Fetch the students
             form = StudentForm()
-            form.program_code.choices = [(program[0], program[0]) for program in programCodes("CCS-EC")]
+            form.program_code.choices = [(program[0], program[0]) for program in programCodes(organization_code)]
             
             students = searchStudents(column_name, searched_item)
 
