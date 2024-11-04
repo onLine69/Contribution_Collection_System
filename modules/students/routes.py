@@ -1,6 +1,6 @@
-from flask import flash, render_template, request, redirect, url_for, flash, session
+from flask import flash, render_template, request, redirect, url_for, flash, session, make_response, jsonify
 from . import students_bp
-from modules.students.controller import displayAll, search as searchStudents, add as addStudent, adds, edit as editStudent, customErrorMessages, delete as deleteStudent
+from modules.students.controller import displayAll, search as searchStudents, add as addStudent, adds, edit as editStudent, customErrorMessages, delete as deleteStudent, fetchUnpaid
 from modules.students.forms import StudentForm
 from modules.controller import programCodes
 from modules import mysql
@@ -31,7 +31,8 @@ def index():
                     form.id_number.data,
                     form.gender.data,
                     form.year_level.data,
-                    form.program_code.data
+                    form.program_code.data,
+                    form.note.data
                 )
 
                 if student_id:
@@ -102,3 +103,29 @@ def delete(id_number):
         flash(customErrorMessages(e), "danger")
     
     return redirect(url_for('students.index'))
+
+
+@students_bp.route('/unpaid', methods=["POST"])
+def list_unpaid():
+    if 'organization_code' not in session:
+        return redirect(url_for('login'))
+    
+    try:
+        req = request.get_json()
+        programs = programCodes(session['organization_code'])
+        year_levels = ['1', '2', '3', '4']
+        data = {
+            'list-type': "Unpaid List",
+            'programs': programs,
+            'year_levels': year_levels
+        }
+        
+        if req['type'] == "Unpaid":
+            for program in programs:
+                for year_level in year_levels:
+                    key = f"{program[0]}-{year_level}"
+                    data[key] = fetchUnpaid(program[0], year_level)
+
+        return jsonify(data)
+    except Exception as e:
+        return make_response(jsonify({'message': 'Invalid JSON format'}), 400)

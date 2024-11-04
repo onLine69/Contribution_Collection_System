@@ -31,6 +31,7 @@ pandas = "*"
 openpyxl = "*"
 flask-login = "*"
 pdfkit = "*"
+flask-cors = "*"
 
 [dev-packages]
 

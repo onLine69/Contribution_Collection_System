@@ -129,7 +129,7 @@ def checkCode(code):
                 SELECT `code` FROM `organizations` WHERE `code` = %s;
             """
         cur.execute(fetch_query, (code,))
-        return cur.fetchone()[0]
+        return cur.fetchone()
     except mysql.connection.Error as e:
         mysql.connection.rollback()  # Rollback in case of error
         raise e

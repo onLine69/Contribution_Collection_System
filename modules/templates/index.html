@@ -1,4 +1,8 @@
 {% extends "master.html" %}
+{% block head %}
+<meta name="csrf-token" content="{{ csrf_token() }}">
+{% endblock %}
+
 {% block info %}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/2.2.9/purify.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -51,6 +55,117 @@
         }
 
         return true; // Allow form submission
+    }
+</script>
+<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#form-modal">Generate Student List</button>
+
+<!-- Modal -->
+<div class="modal fade" id="form-modal" tabindex="-1" aria-labelledby="formModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="formModalLabel"></h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <input type="text" id="list-type" value="Unpaid">
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" id="modal-submit-button" onclick="printList()">Generate</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>            
+    function printList(){
+        const list_type = document.getElementById("list-type").value;
+const list = { 'type': list_type };
+const unpaidUrl = "{{ url_for('students.list_unpaid') }}";
+console.log(list);
+
+fetch(unpaidUrl, {
+    headers: { 
+        "Content-Type": "application/json",
+        "X-CSRFToken": "{{ csrf_token() }}"
+    },
+    method: "POST",
+    body: JSON.stringify(list),
+})
+.then(response => {
+    if (!response.ok) {
+        throw new Error("Network response was not ok");
+    }
+    return response.json();
+})
+.then(data => {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({
+        orientation: 'p',
+        unit: 'mm',
+        format: 'a4',
+        putOnlyUsedFonts: true
+    });
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const header = "{{ url_for('static', filename='images/docs/Header.png') }}";
+    const footer = "{{ url_for('static', filename='images/docs/Footer.png') }}";
+
+    doc.setFontSize(20);
+    doc.setFont("times", "bold");
+    const title = data['list-type'];
+    const titleWidth = doc.getTextWidth(title);
+    doc.text(title, (pageWidth - titleWidth) / 2, 40); // Centered title
+
+    let currentY = 50; // Starting Y position for content
+    const lineHeight = 10; // Line height for the content
+    const startLine = 20;
+
+    // Loop through each program and year level to add students
+    data['programs'].forEach(program => {
+        data['year_levels'].forEach(year => {
+            doc.addImage(header, 'PNG', (pageWidth - 183.642) / 2, 5, 183.642, 27.686);
+            doc.addImage(footer, 'PNG', (pageWidth - 183.642) / 2, pageHeight - 19.812, 183.642, 19.812);
+
+            // Assume fetchUnpaid returns an array of students for the given program and year level
+            const students = data[`${program}-${year}`];
+            
+            doc.setFontSize(16);
+            doc.setFont("times", "bold");
+            doc.text(`${program[0]} - ${year}`, startLine, currentY);
+            currentY += lineHeight; // Move down for the next line
+            
+            doc.setFontSize(13);
+            doc.setFont("times", "normal");
+            // Loop through students and add them to the PDF
+            students.forEach(student => {
+                const studentText = `${student[0]}: ${student[1]}`;
+                doc.text(studentText, startLine, currentY);
+                currentY += lineHeight;
+
+                // Check if the current Y position is too close to the bottom of the page
+                if (currentY > pageHeight - 20) { // Adjust margin as needed
+                    doc.addImage(footer, 'PNG', (pageWidth - 183.642) / 2, pageHeight - 19.812, 183.642, 19.812);
+                    doc.addPage(); // Create a new page if necessary
+                    currentY = 40; // Reset Y position for new page
+                    doc.addImage(header, 'PNG', (pageWidth - 183.642) / 2, 5, 183.642, 27.686);
+                }
+            });
+
+            // Add a page after each program/year level combo if there are more to add
+            if (program !== data['programs'][data['programs'].length - 1] || year !== data['year_levels'][data['year_levels'].length - 1]) {
+                doc.addPage(); // Move to the next page for the next program/year level
+                currentY = 40; // Reset Y position for new page
+            }
+        });
+    });
+
+    doc.save(`${data['list-type']}.pdf`);
+})
+.catch(error => {
+    console.error("There was a problem with the fetch operation:", error);
+});
+
     }
 </script>
 {% endblock %}

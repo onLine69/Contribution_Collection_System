@@ -109,4 +109,3 @@ def verify():
 
     return redirect(url_for('verifications.index'))
     
-    

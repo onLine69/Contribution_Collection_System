@@ -29,8 +29,8 @@ def add(student :tuple):
     try:
         cur = mysql.connection.cursor()
         insert_statement =  """
-                                INSERT INTO `students` (`full_name`, `id_number`, `gender`, `year_level`, `program_code`)
-                                VALUE (%s, %s, %s, %s, %s) 
+                                INSERT INTO `students` (`full_name`, `id_number`, `gender`, `year_level`, `program_code`, `note`)
+                                VALUE (%s, %s, %s, %s, %s, %s) 
                             """
         cur.execute(insert_statement, student)
         mysql.connection.commit()
@@ -89,7 +89,7 @@ def edit(student :tuple):
         cur = mysql.connection.cursor()
         insert_statement =  """
                                 UPDATE `students`
-                                SET `full_name` = %s, `id_number` = %s, `gender` = %s, `year_level` = %s, `program_code` = %s
+                                SET `full_name` = %s, `id_number` = %s, `gender` = %s, `year_level` = %s, `program_code` = %s, `note` = %s
                                 WHERE `id_number` = %s;
                             """
         cur.execute(insert_statement, student)
@@ -110,6 +110,24 @@ def delete(id_number :str):
                         """
         cur.execute(delete_statement, (id_number,))
         mysql.connection.commit()
+    except mysql.connection.Error as e:
+        mysql.connection.rollback()  # Rollback in case of error
+        raise e
+    finally:
+        cur.close()  # Ensure the cursor is closed
+
+def fetchUnpaid(program_code :str, year_level :str):
+    try:
+        cur = mysql.connection.cursor()
+        fetch_statement =  """
+                SELECT `s`.`id_number`, `s`.`full_name`, `s`.`note` 
+                FROM `students` AS `s`
+                LEFT JOIN `transactions` AS `t` ON `s`.`id_number` = `t`.`payer_id` AND `t`.`status` = "Accepted"
+                WHERE `t`.`payer_id` IS NULL AND `program_code` = %s AND `year_level` = %s
+                ORDER BY `s`.`full_name`;
+            """
+        cur.execute(fetch_statement, (program_code, year_level))
+        return cur.fetchall()
     except mysql.connection.Error as e:
         mysql.connection.rollback()  # Rollback in case of error
         raise e

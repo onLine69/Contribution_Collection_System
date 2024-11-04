@@ -7,3 +7,4 @@ class StudentForm(FlaskForm):
     gender = SelectField(label="Gender", choices=[('F', "Female"), ('M', "Male")])
     year_level = SelectField(label="Year Level", choices=[('1', "1st year"), ('2', "2nd year"), ('3', "3rd year"), ('4', "4th year")])
     program_code = SelectField(label="Program Code", choices=[])
+    note = StringField(label="Note", validators=[validators.length(min=1,max=255,message="Length not valid. (min=1, max=255)")])

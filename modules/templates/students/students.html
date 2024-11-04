@@ -34,6 +34,7 @@
         <th scope="col">Gender</th>
         <th scope="col">Year</th>
         <th scope="col">Program</th>
+        <th scope="col">Note</th>
         <th scope="col" colspan="2">Number of Students = {{ data.count }}</th>
     </thead>
     <tbody>
@@ -45,6 +46,7 @@
                 <td title="{{ student[2] }}">{{ student[2] }}</td>
                 <td title="{{ student[3] }}">{{ student[3] }}</td>
                 <td title="{{ student[4] }}">{{ student[4] }}</td>
+                <td title="{{ student[4] }}">{{ student[5] }}</td>
                 <td>
                     <button type="button" data-bs-toggle="modal" class="edit-item btn btn-outline-warning btn-sm"
                         data-bs-target="#form-modal" 
@@ -52,7 +54,8 @@
                         data-id_number="{{ student[1] }}"
                         data-gender="{{ student[2] }}" 
                         data-year_level="{{ student[3] }}"
-                        data-program_code="{{ student[4] }}">Edit</button>
+                        data-program_code="{{ student[4] }}"
+                        data-note="{{ student[5] }}">Edit</button>
                 </td>
                 <td>
                     <form action="{{ url_for('students.delete', id_number=student[1]) }}" method="post">
@@ -124,6 +127,16 @@
                         {% if form.program_code.errors %}
                         <div class="invalid-feedback">
                             {% for error in form.program_code.errors %} {{ error }} {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="input-group mb-3">
+                        {{ form.note.label(class="input-group-text") }}
+                        {{ form.note(class="form-control {% if form.note.errors %}is-invalid{% endif %}", id="student-note") }}
+                        {% if form.note.errors %}
+                        <div class="invalid-feedback">
+                            {% for error in form.note.errors %} {{ error }} {% endfor %}
                         </div>
                         {% endif %}
                     </div>
