@@ -16,7 +16,7 @@ def index():
 
 
     form = VerificationForm()
-
+    
     contributions = displayContributions(organization_code, ACADEMIC_YEAR)
     request_contribution = request.args.get('contribution-names', contributions[0][0])
     
@@ -28,6 +28,8 @@ def index():
         'display_year_level': request.args.get('year-level', None, type=str),
         'program_codes': programCodes(organization_code)
     }
+    
+    form.program_code.choices = [(program[0], program[0]) for program in data['program_codes']]
 
     data['verifications'] = displayAll(data['chosen_contribution'][0], 
                                ACADEMIC_YEAR, 
@@ -65,6 +67,9 @@ def search():
                 'display_year_level': None,
                 'program_codes': programCodes(organization_code)
             }
+
+            
+            form.program_code.choices = [(program[0], program[0]) for program in data['program_codes']]
 
             data['verifications'] = searchPending(data['column'], 
                                           data['searched'], 

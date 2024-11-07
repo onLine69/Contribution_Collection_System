@@ -147,7 +147,7 @@
 
                     <div class="input-group mb-3">
                         {{ form.program_code.label(class="input-group-text") }}
-                        {{ form.program_code(class="form-control {% if form.program_code.errors %}is-invalid{% endif %}", placeholder="e.g. BSCS", id="item-program_code") }}
+                        {{ form.program_code(class="form-control form-select {% if form.program_code.errors %}is-invalid{% endif %}", placeholder="e.g. BSCS", id="item-program_code") }}
                         {% if form.program_code.errors %}
                         <div class="invalid-feedback">
                             {% for error in form.program_code.errors %} {{ error }} {% endfor %}

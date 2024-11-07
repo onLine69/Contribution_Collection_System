@@ -130,59 +130,55 @@ function printList(){
         let currentY = 50; // Starting Y position for content
         const lineHeight = 10; // Line height for the content
         const startLine = 20;
+
         // Loop through each program and year level to add students
-        data['programs'].forEach((program, programIndex) => {
-            data['year_levels'].forEach((year, yearIndex) => {
-                const students = data[`${program}-${year}`]; // Get students for the current program-year level combo
-
-                // Skip to the next program-year level if there are no students
-                if (!students || students.length === 0) {
-                    return; // Skip to the next iteration
-                }
-
-                // Add header and footer images
-                doc.addImage(header, 'PNG', (pageWidth - 184) / 2, 5, 184, 28);
-                doc.addImage(footer, 'PNG', (pageWidth - 184) / 2, pageHeight - 20, 184, 20);
-
-                // Set header for program-year level
-                doc.setFontSize(16);
-                doc.setFont("times", "bold");
-                doc.text(`${program[0]} - ${year}`, startLine, currentY);
-                currentY += lineHeight; // Move down for the next line
-
-                // Set font for student entries
-                doc.setFontSize(13);
-                doc.setFont("times", "normal");
-
-                // Loop through students and add them to the PDF
-                students.forEach(student => {
-                    const studentText = `${student[0]}: ${student[1]}`;
-                    doc.text(studentText, startLine, currentY);
-                    currentY += lineHeight;
-
-                    // Check if the current Y position is too close to the bottom of the page
-                    if (currentY > pageHeight - 20) { // Adjust margin as needed
-                        doc.addPage(); // Create a new page if necessary
-                        doc.addImage(header, 'PNG', (pageWidth - 184) / 2, 5, 184, 28);
-                        doc.addImage(footer, 'PNG', (pageWidth - 184) / 2, pageHeight - 20, 184, 20);
-                        currentY = 40; // Reset Y position for new page
-                    }
-                });
-
-                // Check if we need to add a page for the next program/year level combo with students
-                if (!((programIndex === data['programs'].length - 1) && (yearIndex === data['year_levels'].length - 1))) {
-                    const nextProgram = data['programs'][programIndex + (yearIndex === data['year_levels'].length - 1 ? 1 : 0)];
-                    const nextYear = data['year_levels'][(yearIndex + 1) % data['year_levels'].length];
-                    const nextStudents = data[`${nextProgram}-${nextYear}`];
-
-                    if (nextStudents && nextStudents.length > 0) {
-                        doc.addPage(); // Only add a new page if the next set has students
-                        currentY = 40; // Reset Y position for new page
-                    }
+        // Get all valid program-year combinations with student data
+        const validCombinations = [];
+        data['programs'].forEach(program => {
+            data['year_levels'].forEach(year => {
+                const students = data[`${program}-${year}`];
+                if (students && students.length > 0) {
+                    validCombinations.push({ program, year, students });
                 }
             });
         });
 
+        // Iterate over each valid program-year level combination
+        validCombinations.forEach(({ program, year, students }, index) => {
+            // Add header and footer images
+            doc.addImage(header, 'PNG', (pageWidth - 184) / 2, 5, 184, 28);
+            doc.addImage(footer, 'PNG', (pageWidth - 184) / 2, pageHeight - 20, 184, 20);
+
+            // Set header for program-year level
+            doc.setFontSize(16);
+            doc.setFont("times", "bold");
+            doc.text(`${program[0]} - ${year}`, startLine, currentY);
+            currentY += lineHeight; // Move down for the next line
+
+            // Set font for student entries
+            doc.setFontSize(13);
+            doc.setFont("times", "normal");
+            // Loop through students and add them to the PDF
+            students.forEach(student => {
+                const studentText = `${student[0]}: ${student[1]}`;
+                doc.text(studentText, startLine, currentY);
+                currentY += lineHeight;
+
+                // Check if the current Y position is too close to the bottom of the page
+                if (currentY > pageHeight - 20) { // Adjust margin as needed
+                    doc.addPage(); // Create a new page if necessary
+                    doc.addImage(header, 'PNG', (pageWidth - 184) / 2, 5, 184, 28);
+                    doc.addImage(footer, 'PNG', (pageWidth - 184) / 2, pageHeight - 20, 184, 20);
+                    currentY = 40; // Reset Y position for new page
+                }
+            });
+
+            // Add a new page after each valid combination except for the last one
+            if (index < validCombinations.length - 1) {
+                doc.addPage();
+                currentY = 40; // Reset Y position for new page
+            }
+        });
         doc.save(`${data['list-type']}.pdf`);
     })
     .catch(error => {

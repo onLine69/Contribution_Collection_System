@@ -85,7 +85,6 @@ def verifyTransactions(name, acad_year, amount, payer_ids, transaction_messages)
         for n in range(0, len(payer_ids)):
             cur.execute(check_query, (payer_ids[n], name, acad_year))
             recorded = cur.fetchone()[0]
-            print(recorded)
             if recorded == 0:
                 cur.execute(transact_query, (name, acad_year, payer_ids[n], amount, transaction_messages[n]))
                 mysql.connection.commit()
