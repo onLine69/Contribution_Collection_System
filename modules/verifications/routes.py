@@ -6,7 +6,6 @@ from modules.controller import displayContributions, searchContributions, progra
 from config import ACADEMIC_YEAR
 from modules import mysql
 import datetime
-import pdfkit
 
 @verifications_bp.route('/', methods=["GET"])
 def index():
@@ -87,6 +86,7 @@ def verify():
         contribution_value = request.form.get('contribution_amount', 0)
 
         data = {
+            'title': "Payment Receipt",
             'contribution_name': form.contribution_name.data,
             'block_rep': form.block_rep.data,
             'verification_date': str(datetime.datetime.now()).split(" ")[0],

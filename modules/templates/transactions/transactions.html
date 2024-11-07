@@ -1,6 +1,10 @@
 {% extends "master.html" %}
 
 {% block info %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/2.2.9/purify.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
+
 <div class="operation-area">
     <div class="operations">
         <div class="card">
@@ -16,19 +20,26 @@
             </form>
             
             <!-- Button container -->
-            <div style="display: flex; justify-content: space-around; margin-top: 1rem;">
-                <!-- Clear Filter button -->
-                <form action="{{ url_for('transactions.index') }}" method="get">
-                    <input type="hidden" name="contribution-names" id="contribution-names" value="{{ data.chosen_contribution[0] }}">
-                    <button type="submit" class="btn btn-dark">
-                        Clear Filter
+            <div style="display: flex; flex-direction: column; align-items: center; margin-top: 1rem;">
+                <!-- Row with the first two buttons -->
+                <div style="display: flex; justify-content: space-around; width: 100%; max-width: 500px;">
+                    <!-- Clear Filter button -->
+                    <form action="{{ url_for('transactions.index') }}" method="get">
+                        <input type="hidden" name="contribution-names" id="contribution-names" value="{{ data.chosen_contribution[0] }}">
+                        <button type="submit" class="btn btn-dark">
+                            Clear Filter
+                        </button>
+                    </form>
+                    <!-- Button to trigger the modal -->
+                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#filterModal">
+                        Open Filter List
                     </button>
-                </form>
-                <!-- Button to trigger the modal -->
-                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#filterModal">
-                    Open Filter List
-                </button>
+                </div>
+            
+                <!-- Last button below the first two -->
+                <button type="button" class="btn btn-secondary" style="margin-top: 1rem;" value="Generate List" onclick="generateList()">Generate List in PDF</button>
             </div>
+            
         </div>
         <div class="card">
             <h5 class="card-title">Information</h5>
@@ -146,4 +157,12 @@
         </div>
     </div>
 </div>
+
+<input type="hidden" name="header_src" id="header_src" value="{{ url_for('static', filename='images/docs/Header.png') }}">
+<input type="hidden" name="footer_src" id="footer_src" value="{{ url_for('static', filename='images/docs/Footer.png') }}">
+<script type="application/json" id="data-json">
+    {{ data | tojson }}
+</script>
+
+<script type="text/javascript" src="{{ url_for('static', filename='javascript/transactions/generateTransactionsList.js') }}"></script>
 {% endblock %}

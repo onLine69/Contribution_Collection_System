@@ -1,0 +1,119 @@
+.receipt-container {
+    width: 80%;
+    margin: 0 auto;
+    padding: 20px;
+    font-family: Arial, sans-serif;
+}
+
+.card-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+/* Main container */
+.card {
+    display: flex;
+    border: 1px solid black;
+    width: 300px;
+    height: 200px;
+    font-family: Arial, sans-serif;
+    font-size: 8px;
+    /* Reduced font size for smaller space */
+}
+
+/* Left side styles */
+.left-column {
+    background-color: #2eaba9;
+    color: black;
+    width: 40%;
+    padding: 5px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    border-right: 1px dashed black;
+}
+
+.left-column img {
+    width: 50px;            /* Adjusted logo size for smaller layout */
+    height: 50px;           /* Ensure height is equal to width for a perfect circle */
+    border-radius: 50%;     /* Makes the image circular */
+    display: block;         /* Centers the image */
+    margin: 0 auto 50px;    /* Centers horizontally and adds bottom margin */
+    border: 2px solid #227c7b ;
+}
+
+.left-column p {
+    margin: 3px 0;
+    line-height: 1;
+    /* Adjusted line height for tighter spacing */
+}
+
+.information {
+    margin-top: 10px;
+    line-height: 1; /* Adjusted line height for tighter spacing */
+    text-align: left;
+}
+
+.header-container {
+    display: flex;
+    align-items: center;
+    justify-content: center; /* Centers the content horizontally */
+    gap: 10px; /* Adds spacing between the image and text */
+}
+
+.header-container img {
+    width: 30px;            /* Adjusted logo size */
+    height: 30px;           /* Ensures the image is circular */
+    border-radius: 50%;     /* Makes the image circular */
+    border: 1px solid black;
+}
+
+.header-container h2 {
+    font-size: 12px;        /* Adjust font size as needed */
+    margin: 0;
+}
+
+/* Right side styles */
+.right-column {
+    width: 60%;
+    padding: 5px;
+    box-sizing: border-box;
+    text-align: center;
+    position: relative;
+}
+
+.right-column h2 {
+    margin: 0;
+    font-size: 10px;
+    /* Reduced font size */
+}
+
+.right-column p {
+    margin: 5px 0;
+    font-size: 8px;
+    /* Reduced font size for paragraphs */
+    line-height: 1.2;
+}
+
+.right-column .signature {
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    text-align: center;
+}
+
+.signature-line {
+    border-top: 1px solid black;
+    width: 100px;
+    margin-top: 2px;
+    font-size: 6px;
+    /* Reduced font size for signature text */
+}
+
+
+@layer base {
+    img {
+        display: initial;
+    }
+}

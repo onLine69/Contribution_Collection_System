@@ -1,62 +1,49 @@
 {% extends "master.html" %}
-{% block head %}
-<meta name="csrf-token" content="{{ csrf_token() }}">
-{% endblock %}
 
 {% block info %}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/2.2.9/purify.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js"></script>
 
 <div class="operation-area">
     <div class="operations">
         <form class="d-flex" role="search" id="program-show" action="{{ url_for('index') }}" method="post" onsubmit="return validateForm()">
+            {% set month_names = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"] %}
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="selected-program" id="selected-program" value="{{ data.selected_program }}">
+            <input type="hidden" name="selected-year" id="selected-year" value="{{ data.selected_year }}">
+            <input type="hidden" name="selected-month" id="selected-month" value="{{ month_names[data.selected_month|int - 1] }}">
+
             <select name="programs" id="programs" class="form-select-lg">
                 <option value="" disabled selected>--Select a Program--</option>
-                {% for program_code in program_codes %}
-                    <option class="show-options" value="{{ program_code[0] }}" {% if program_name == program_code[0] %}selected{% endif %}>
-                        {{ program_code[0] }}
-                    </option>
+                {% for program_code in data.program_codes %}
+                <option class="show-options" value="{{ program_code[0] }}" {% if data.selected_program==program_code[0] %}selected{% endif %}>
+                    {{ program_code[0] }}
+                </option>
                 {% endfor %}
             </select>
             <select name="years" id="years" class="form-select-lg">
                 <option value="" disabled selected>--Select Year--</option>
-                {% for academic_year in academic_years %}
-                    <option class="show-options" value="{{ academic_year }}" {% if chosen_year == academic_year %}selected{% endif %}>
-                        {{ academic_year }}
-                    </option>
+                {% for academic_year in data.academic_years %}
+                <option class="show-options" value="{{ academic_year }}" {% if data.selected_year==academic_year %}selected{% endif %}>
+                    {{ academic_year }}
+                </option>
                 {% endfor %}
             </select>
-        
+
             <select name="months" id="months" class="form-select-lg">
                 <option value="" disabled selected>--Select a Month--</option>
-                {% set month_names = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"] %}
                 {% for month in range(1, 13) %}
-                    <option value="{{ month }}" {% if selected_month|int == month %}selected{% endif %}>
-                        {{ month_names[month - 1] }}  <!-- month - 1 to adjust for zero-indexing -->
-                    </option>
+                <option value="{{ month }}" {% if data.selected_month|int==month %}selected{% endif %}>
+                    {{ month_names[month - 1] }}
+                </option>
                 {% endfor %}
             </select>
             <button type="submit" class="btn btn-primary">Check</button>
         </form>
     </div>
 </div>
-
-<script>
-    function validateForm() {
-        const programSelect = document.getElementById('programs');
-        const yearSelect = document.getElementById('years');
-        const monthSelect = document.getElementById('months');
-
-        if (programSelect.value === "" || yearSelect.value === "" || monthSelect.value === "") {
-            alert("Please select a value for all fields.");
-            return false; // Prevent form submission
-        }
-
-        return true; // Allow form submission
-    }
-</script>
 <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#form-modal">Generate Student List</button>
 
 <!-- Modal -->
@@ -64,11 +51,19 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h1 class="modal-title fs-5" id="formModalLabel"></h1>
+                <h1 class="modal-title fs-5" id="formModalLabel">Select List to Generate</h1>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <input type="text" id="list-type" value="Unpaid">
+                <input type="hidden" name="organization_code" id="organization_code" value="{{ session.organization_code }}">
+                <input type="hidden" name="unpaid_url" id="unpaid_url" value="{{ url_for('students.student_list') }}">
+                <input type="hidden" name="_token_csrf" id="_token_csrf" value="{{ csrf_token() }}">
+
+                <select name="list-type" id="list-type" class="form-select-lg">
+                    <option value="All">All Students</option>
+                    <option value="Unpaid">Unpaid Students</option>
+                    <option value="Paid">Paid Students</option>
+                </select>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-primary" id="modal-submit-button" onclick="printList()">Generate</button>
                 </div>
@@ -77,244 +72,61 @@
     </div>
 </div>
 
-<script>            
-    function printList(){
-        const list_type = document.getElementById("list-type").value;
-const list = { 'type': list_type };
-const unpaidUrl = "{{ url_for('students.list_unpaid') }}";
-console.log(list);
-
-fetch(unpaidUrl, {
-    headers: { 
-        "Content-Type": "application/json",
-        "X-CSRFToken": "{{ csrf_token() }}"
-    },
-    method: "POST",
-    body: JSON.stringify(list),
-})
-.then(response => {
-    if (!response.ok) {
-        throw new Error("Network response was not ok");
-    }
-    return response.json();
-})
-.then(data => {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({
-        orientation: 'p',
-        unit: 'mm',
-        format: 'a4',
-        putOnlyUsedFonts: true
-    });
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const pageHeight = doc.internal.pageSize.getHeight();
-    const header = "{{ url_for('static', filename='images/docs/Header.png') }}";
-    const footer = "{{ url_for('static', filename='images/docs/Footer.png') }}";
-
-    doc.setFontSize(20);
-    doc.setFont("times", "bold");
-    const title = data['list-type'];
-    const titleWidth = doc.getTextWidth(title);
-    doc.text(title, (pageWidth - titleWidth) / 2, 40); // Centered title
-
-    let currentY = 50; // Starting Y position for content
-    const lineHeight = 10; // Line height for the content
-    const startLine = 20;
-
-    // Loop through each program and year level to add students
-    data['programs'].forEach(program => {
-        data['year_levels'].forEach(year => {
-            doc.addImage(header, 'PNG', (pageWidth - 183.642) / 2, 5, 183.642, 27.686);
-            doc.addImage(footer, 'PNG', (pageWidth - 183.642) / 2, pageHeight - 19.812, 183.642, 19.812);
-
-            // Assume fetchUnpaid returns an array of students for the given program and year level
-            const students = data[`${program}-${year}`];
-            
-            doc.setFontSize(16);
-            doc.setFont("times", "bold");
-            doc.text(`${program[0]} - ${year}`, startLine, currentY);
-            currentY += lineHeight; // Move down for the next line
-            
-            doc.setFontSize(13);
-            doc.setFont("times", "normal");
-            // Loop through students and add them to the PDF
-            students.forEach(student => {
-                const studentText = `${student[0]}: ${student[1]}`;
-                doc.text(studentText, startLine, currentY);
-                currentY += lineHeight;
-
-                // Check if the current Y position is too close to the bottom of the page
-                if (currentY > pageHeight - 20) { // Adjust margin as needed
-                    doc.addImage(footer, 'PNG', (pageWidth - 183.642) / 2, pageHeight - 19.812, 183.642, 19.812);
-                    doc.addPage(); // Create a new page if necessary
-                    currentY = 40; // Reset Y position for new page
-                    doc.addImage(header, 'PNG', (pageWidth - 183.642) / 2, 5, 183.642, 27.686);
-                }
-            });
-
-            // Add a page after each program/year level combo if there are more to add
-            if (program !== data['programs'][data['programs'].length - 1] || year !== data['year_levels'][data['year_levels'].length - 1]) {
-                doc.addPage(); // Move to the next page for the next program/year level
-                currentY = 40; // Reset Y position for new page
-            }
-        });
-    });
-
-    doc.save(`${data['list-type']}.pdf`);
-})
-.catch(error => {
-    console.error("There was a problem with the fetch operation:", error);
-});
-
-    }
-</script>
+<input type="hidden" name="header_src" id="header_src" value="{{ url_for('static', filename='images/docs/Header.png') }}">
+<input type="hidden" name="footer_src" id="footer_src" value="{{ url_for('static', filename='images/docs/Footer.png') }}">
 {% endblock %}
 
 {% block content %}
-{% if program_name %}
-<div style="display: flex; justify-content: center; flex-direction: column; align-items: center;">
-    <canvas class="graph-report" id="1stSem" style="width: 100%; max-width: 700px;"></canvas>
-    <canvas class="graph-report" id="2ndSem" style="width: 100%; max-width: 700px;"></canvas>
-</div>
-<button type="button" onclick="printGraphs()">Generate Graph in PDF</button>
-<script>
-    const xValues = ["1st", "2nd", "3rd", "4th"];
-    const pdata = {{ paid_count | tojson }};
-    const udata = {{ unpaid_count | tojson }};
+    {% if data.selected_program %}
+    <div style="display: flex; justify-content: center; flex-direction: column; align-items: center;">
+        <canvas class="graph-report" id="1stSem" style="width: 100%; max-width: 700px;"></canvas>
+        <canvas class="graph-report" id="2ndSem" style="width: 100%; max-width: 700px;"></canvas>
+    </div>
+    <button type="button" onclick='printGraphs({{ data.paid_count | tojson }}, {{ data.unpaid_count | tojson }})'>Generate Graphs in PDF</button>
 
-    const fpaid_data = {
-        label: "Paid",
-        data: pdata.fcontribution.data,
-        borderColor: "blue",
-        fill: false
-    };
+    <script>
+        const xValues = ["1st", "2nd", "3rd", "4th"];
+        const pdata = {{ data.paid_count | tojson }};
+        const udata = {{ data.unpaid_count | tojson }};
 
-    const funpaid_data = {
-        label: "Unpaid",
-        data: udata.fcontribution.data,
-        borderColor: "red",
-        fill: false
-    };
+        const fpaid_data = { label: "Paid", data: pdata.fcontribution.data, borderColor: "blue", fill: false };
+        const funpaid_data = { label: "Unpaid", data: udata.fcontribution.data, borderColor: "red", fill: false };
 
-    new Chart("1stSem", {
-      type: "line",
-      data: {
-        labels: xValues,
-        datasets: [fpaid_data, funpaid_data]
-      },
-      options: {
-        title: {
-            display: true,
-            text: pdata.fcontribution.name + " (" + "{{ program_name }}" + ")"
-        },
-        legend: {display: true}
-      }
-    });
-
-    const spaid_data = {
-        label: "Paid",
-        data: pdata.scontribution.data,
-        borderColor: "blue",
-        fill: false
-    };
-
-    const sunpaid_data = {
-        label: "Unpaid",
-        data: udata.scontribution.data,
-        borderColor: "red",
-        fill: false
-    };
-    
-    new Chart("2ndSem", {
-      type: "line",
-      data: {
-        labels: xValues,
-        datasets: [spaid_data, sunpaid_data]
-      },
-      options: {
-        title: {
-            display: true,
-            text: pdata.scontribution.name + " (" + "{{ program_name }}" + ")"
-        },
-        legend: {display: true}
-      }
-    });
-</script>
-
-<script>
-    // Generate pdf of the presented graphs
-    function printGraphs(){
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF({
-            orientation: 'p',
-            unit: 'mm',
-            format: 'a4',
-            putOnlyUsedFonts: true
-        });
-        const pageWidth = doc.internal.pageSize.getWidth();
-        const pageHeight = doc.internal.pageSize.getHeight();
-        // Add Header
-        const header = "{{ url_for('static', filename='images/docs/Header.png') }}";
-        doc.addImage(header, 'PNG', (pageWidth - 183.642)/2 , 5, 183.642, 27.686);
-
-        doc.setFontSize(18);
-        doc.setFont("times", "normal");
-        const title = "Data Summary";
-        const titleWidth = doc.getTextWidth(title);
-        doc.text(title, (pageWidth - titleWidth) / 2, 40); // Centered title
-
-        doc.setFontSize(14);
-        const month_names = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-        const dataDescription = `Program Code: ${"{{program_name}}"} | Month: ${month_names[{{selected_month}} - 1]} | Year: ${"{{chosen_year}}"}` 
-        const dataDescriptionWidth = doc.getTextWidth(dataDescription);
-        doc.text(dataDescription, (pageWidth - dataDescriptionWidth) / 2, 50); // Centered Description
-        
-        const year_levels = ["1st Year", "2nd Year", "3rd Year", "4th Year"];
-        const pdata = {{ paid_count | tojson }};
-        const udata = {{ unpaid_count | tojson }};
-
-        
-        const graphs = document.getElementsByClassName("graph-report");
-        const imgWidth = 170; // Width in mm
-        let positionY = 55; // Starting position for the first image in a row
-
-        
-        for (let i = 0; i < graphs.length; i++){
-            const imgData = graphs[i].toDataURL('image/png');
-            const imgHeight = (graphs[i].height * imgWidth) / graphs[i].width;
-
-            doc.addImage(imgData, 'PNG', (pageWidth - imgWidth)/2, positionY, imgWidth, imgHeight);
-            
-            positionY += imgHeight + 10; // Move to the right for the next image
-            const pdataUse = i === 0 ? pdata.fcontribution.data : pdata.scontribution.data;
-            const udataUse = i === 0 ? udata.fcontribution.data : udata.scontribution.data;
-
-            let labelPosition = (pageWidth - imgWidth)/2 + 10;
-            for (let y = 0; y < year_levels.length; y++){
-                doc.setFontSize(8);
-                doc.setTextColor(0,0,0);
-                const label = year_levels[y] + ":";
-                const labelWidth = doc.getTextWidth(label);
-                doc.text(label, labelPosition, positionY);
-                const paidData = pdataUse[y] + " Students";
-                const pdataWidth = doc.getTextWidth(paidData);
-                doc.setTextColor(0,0,255);
-                doc.text(paidData, labelPosition + labelWidth + 5, positionY);
-                const unpaidData = udataUse[y] + " Students";
-                doc.setTextColor(255,0,0);
-                doc.text(unpaidData, labelPosition + labelWidth  + 5, positionY + 5)
-                labelPosition += labelWidth + pdataWidth + 20;
+        new Chart("1stSem", {
+            type: "line",
+            data: {
+                labels: xValues,
+                datasets: [fpaid_data, funpaid_data]
+            },
+            options: {
+                title: {
+                    display: true,
+                    text: `${pdata.fcontribution.name} ({{ program_name }})`
+                },
+                legend: { display: true }
             }
+        });
 
-            positionY += 10;
-        }
+        const spaid_data = { label: "Paid", data: pdata.scontribution.data, borderColor: "blue", fill: false };
+        const sunpaid_data = { label: "Unpaid", data: udata.scontribution.data, borderColor: "red", fill: false };
 
-        // Add Footers
-        const footers = "{{ url_for('static', filename='images/docs/Footer.png') }}";
-        doc.addImage(footers, 'PNG', (pageWidth - 183.642)/2 , pageHeight - 19.812, 183.642, 19.812);
-        
-        doc.save(pdata.fcontribution.name + " (" + "{{ program_name }}" + ") Graph.pdf");
-    }
-</script>
-{% endif %}
+        new Chart("2ndSem", {
+            type: "line",
+            data: {
+                labels: xValues,
+                datasets: [spaid_data, sunpaid_data]
+            },
+            options: {
+                title: {
+                    display: true,
+                    text: `${pdata.scontribution.name} ({{ data.selected_program }})`
+                },
+                legend: { display: true }
+            }
+        });
+    </script>
+    {% endif %}
+
+<script type="text/javascript" src="{{ url_for('static', filename='javascript/formCompleteCheck.js') }}"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='javascript/generateIndexReport.js') }}"></script>
 {% endblock %}

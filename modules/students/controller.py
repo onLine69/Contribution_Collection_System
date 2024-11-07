@@ -120,7 +120,7 @@ def fetchUnpaid(program_code :str, year_level :str):
     try:
         cur = mysql.connection.cursor()
         fetch_statement =  """
-                SELECT `s`.`id_number`, `s`.`full_name`, `s`.`note` 
+                SELECT `s`.`id_number`, `s`.`full_name`
                 FROM `students` AS `s`
                 LEFT JOIN `transactions` AS `t` ON `s`.`id_number` = `t`.`payer_id` AND `t`.`status` = "Accepted"
                 WHERE `t`.`payer_id` IS NULL AND `program_code` = %s AND `year_level` = %s
@@ -134,6 +134,40 @@ def fetchUnpaid(program_code :str, year_level :str):
     finally:
         cur.close()  # Ensure the cursor is closed
 
+def fetchPaid(program_code :str, year_level :str):
+    try:
+        cur = mysql.connection.cursor()
+        fetch_statement =  """
+                SELECT `s`.`id_number`, `s`.`full_name`
+                FROM `transactions` AS `t` LEFT JOIN `students` AS `s` ON `t`.`payer_id` = `s`.`id_number`
+                WHERE `t`.`status` = "Accepted"
+                AND `program_code` = %s AND `year_level` = %s
+                ORDER BY `s`.`full_name`;
+            """
+        cur.execute(fetch_statement, (program_code, year_level))
+        return cur.fetchall()
+    except mysql.connection.Error as e:
+        mysql.connection.rollback()  # Rollback in case of error
+        raise e
+    finally:
+        cur.close()  # Ensure the cursor is closed
+
+def fetchAll(program_code :str, year_level :str):
+    try:
+        cur = mysql.connection.cursor()
+        fetch_statement =  """
+                SELECT `id_number`, `full_name`
+                FROM `students`
+                WHERE `program_code` = %s AND `year_level` = %s
+                ORDER BY `full_name`;
+            """
+        cur.execute(fetch_statement, (program_code, year_level))
+        return cur.fetchall()
+    except mysql.connection.Error as e:
+        mysql.connection.rollback()  # Rollback in case of error
+        raise e
+    finally:
+        cur.close()  # Ensure the cursor is closed
 
 def customErrorMessages(error):
     if (error.args[0] == 1451):
